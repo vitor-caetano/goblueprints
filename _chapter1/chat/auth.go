@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/stretchr/gomniauth"
 	"github.com/stretchr/objx"
+	"crypto/md5"
+	"io"
 )
 
 type authHandler struct {
@@ -71,14 +73,19 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("Error when trying to get user for %s: %s", provider, err), http.StatusInternalServerError)
 			return
 		}
+		m := md5.New()
+		io.WriteString(m, strings.ToLower(user.Email()))
+		userId := fmt.Sprintf("%x", m.Sum(nil))
 		authCookieValue := objx.New(map[string]interface{}{
-			"name": user.Name(),
+			"userid":     userId,
+			"name":       user.Name(),
 			"avatar_url": user.AvatarURL(),
+			"email":      user.Email(),
 		}).MustBase64()
 		http.SetCookie(w, &http.Cookie{
-			Name:"auth",
-			Value:authCookieValue,
-			Path:"/",
+			Name:  "auth",
+			Value: authCookieValue,
+			Path:  "/",
 		})
 		w.Header().Set("Location", "/chat")
 		w.WriteHeader(http.StatusTemporaryRedirect)

@@ -1,6 +1,6 @@
 package main
 
-import(
+import (
 	"errors"
 )
 
@@ -33,12 +33,13 @@ func (AuthAvatar) GetAvatarURL(c *client) (string, error) {
 
 type GravatarAvatar struct{}
 
-var UseGravatarAvatar GravatarAvatar
+var UseGravatar GravatarAvatar
 
-func (GravatarAvatar) GetGravatarAvatarURL(c *client) (string, error) {
-	if email, ok := c.userData["email"]; ok {
-		if emailStr, ok := email.(string); ok {
-
+func (GravatarAvatar) GetAvatarURL(c *client) (string, error) {
+	if userId, ok := c.userData["userid"]; ok {
+		if userIdStr, ok := userId.(string); ok {
+			return "//www.gravatar.com/avatar/" + userIdStr, nil
 		}
 	}
+	return "", ErrorNoAvatar
 }
